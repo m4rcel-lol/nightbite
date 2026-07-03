@@ -15,7 +15,11 @@ module.exports = {
     // Fetch prefix from DB (could be cached in real life to avoid query per message)
     let prefix = DEFAULT_PREFIX;
     try {
-      const guildData = await prisma.guild.findUnique({ where: { id: message.guild.id } });
+      const guildData = await prisma.guild.upsert({
+        where: { id: message.guild.id },
+        update: {},
+        create: { id: message.guild.id, prefix: DEFAULT_PREFIX }
+      });
       if (guildData && guildData.prefix) {
         prefix = guildData.prefix;
       }

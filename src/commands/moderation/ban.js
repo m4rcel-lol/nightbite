@@ -37,7 +37,10 @@ module.exports = {
       });
     }
 
-    const targetMember = await context.guild.members.fetch(targetUser.id).catch(() => null);
+    const targetMember = await context.guild.members.fetch(targetUser.id).catch((e) => {
+      if (e.code !== 10007) throw e;
+      return null;
+    });
 
     if (targetMember) {
       if (!canModerate(context.member, targetMember)) {

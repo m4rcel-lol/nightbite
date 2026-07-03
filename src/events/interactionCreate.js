@@ -4,6 +4,7 @@ const { getPermissionLevel, PERMISSION_LEVELS } = require('../utils/permissions'
 const { checkCooldown } = require('../utils/cooldowns');
 const { buildEmbed } = require('../utils/embeds');
 const { logger } = require('../utils/logger');
+const { prisma } = require('../database/client');
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -23,6 +24,14 @@ module.exports = {
     const context = new CommandContext(interaction);
 
     try {
+      if (interaction.guild) {
+        await prisma.guild.upsert({
+          where: { id: interaction.guild.id },
+          update: {},
+          create: { id: interaction.guild.id }
+        });
+      }
+
       // Cooldown check
       const timeLeft = checkCooldown(command.data.name, interaction.user.id, command.cooldown || 3);
       if (timeLeft) {
