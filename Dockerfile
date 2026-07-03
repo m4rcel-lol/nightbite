@@ -1,8 +1,8 @@
-FROM node:20-slim AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-RUN apt-get update -y && apt-get install -y openssl
+RUN apk add --no-cache openssl
 
 COPY package*.json ./
 COPY prisma ./prisma/
@@ -13,11 +13,11 @@ COPY . .
 
 RUN npx prisma generate
 
-FROM node:20-slim
+FROM node:20-alpine
 
 WORKDIR /app
 
-RUN apt-get update -y && apt-get install -y openssl
+RUN apk add --no-cache openssl
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
