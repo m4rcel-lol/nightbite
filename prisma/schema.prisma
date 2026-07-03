@@ -1,0 +1,114 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Guild {
+  id                   String   @id
+  prefix               String   @default("n!")
+  modLogChannelId      String?
+  ticketLogChannelId   String?
+  ticketMaxOpen        Int      @default(1)
+  ticketPrivateThreads Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  cases            Case[]
+  staffRoles       GuildStaffRole[]
+  staffUsers       GuildStaffUser[]
+  ticketCategories TicketCategory[]
+  tickets          Ticket[]
+  ticketBlacklist  TicketBlacklist[]
+}
+
+model Case {
+  id          Int      @id @default(autoincrement())
+  guildId     String
+  guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  userId      String
+  moderatorId String
+  action      String // "ban", "kick", "warn", "timeout", etc.
+  reason      String?
+  duration    String? // for timeout/tempban
+  createdAt   DateTime @default(now())
+
+  @@index([guildId, userId])
+}
+
+model GuildStaffRole {
+  id      Int    @id @default(autoincrement())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  roleId  String
+  scope   String @default("all") // "all", "moderation", "tickets"
+
+  @@unique([guildId, roleId])
+}
+
+model GuildStaffUser {
+  id      Int    @id @default(autoincrement())
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  userId  String
+  scope   String @default("all") // "all", "moderation", "tickets"
+
+  @@unique([guildId, userId])
+}
+
+model TicketCategory {
+  id              Int      @id @default(autoincrement())
+  guildId         String
+  guild           Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  emoji           String?
+  supportRoles    String // comma separated role IDs
+  intakeQuestions String? // JSON serialized array of questions
+  createdAt       DateTime @default(now())
+
+  tickets Ticket[]
+}
+
+model Ticket {
+  id          Int            @id @default(autoincrement())
+  guildId     String
+  guild       Guild          @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  channelId   String         @unique
+  openerId    String
+  categoryId  Int
+  category    TicketCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  status      String         @default("open") // "open", "closed"
+  priority    String         @default("normal") // "low", "normal", "high", "urgent"
+  claimedBy   String?
+  closeReason String?
+  createdAt   DateTime       @default(now())
+  closedAt    DateTime?
+
+  rating TicketRating?
+}
+
+model TicketRating {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int      @unique
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  staffId   String // The staff member who handled/closed the ticket
+  rating    Int // 1 to 5
+  feedback  String?
+  createdAt DateTime @default(now())
+}
+
+model TicketBlacklist {
+  id      Int      @id @default(autoincrement())
+  guildId String
+  guild   Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  userId  String
+  reason  String?
+  addedBy String
+  addedAt DateTime @default(now())
+
+  @@unique([guildId, userId])
+}
