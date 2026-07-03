@@ -1,1 +1,0 @@
-{ "brandColor": "#7C3AED", "successColor": "#57F287", "errorColor": "#ED4245", "warningColor": "#FEE75C", "pink": "#FFAADD", "red": "#ED4245", "green": "#57F287", "yellow": "#FEE75C", "blue": "#3498db", "white": "#ffffff", "black": "#000000", "gray": "#99aab5" }
