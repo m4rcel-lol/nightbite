@@ -91,6 +91,16 @@ module.exports = {
         
         if (!isOwner) {
           // It's a staff ban requested by a non-owner. Needs approval.
+          const guildConfig = await prisma.guild.findUnique({ where: { id: context.guild.id } });
+          const modLogChannel = guildConfig?.modLogChannelId ? context.guild.channels.cache.get(guildConfig.modLogChannelId) : null;
+          
+          if (!modLogChannel) {
+            return context.reply({
+              embeds: [buildEmbed('error', { description: 'The Mod Log channel is not configured or missing! The owner must set it up via `/setup` before requesting staff bans.' })],
+              ephemeral: true
+            });
+          }
+
           const pendingBan = await prisma.pendingBan.create({
             data: {
               guildId: context.guild.id,
@@ -102,7 +112,6 @@ module.exports = {
           });
 
           try {
-            const owner = await context.guild.fetchOwner();
             const row = new ActionRowBuilder().addComponents(
               new ButtonBuilder()
                 .setCustomId(`approve_ban_${pendingBan.id}`)
@@ -114,7 +123,8 @@ module.exports = {
                 .setStyle(ButtonStyle.Secondary)
             );
 
-            await owner.send({
+            await modLogChannel.send({
+              content: `<@${context.guild.ownerId}>`,
               embeds: [
                 buildEmbed('warning', {
                   title: 'Pending Staff Ban Approval',
@@ -125,11 +135,12 @@ module.exports = {
             });
 
             return context.reply({
-              embeds: [buildEmbed('success', { description: `Sent an approval request to the Server Owner to ban the staff member **${targetUser.tag}**.` })]
+              embeds: [buildEmbed('success', { description: `✅ Sent an approval request to the Mod Log channel (<#${modLogChannel.id}>).` })],
+              ephemeral: true
             });
           } catch (err) {
             return context.reply({
-              embeds: [buildEmbed('error', { description: `Failed to DM the server owner for approval. Ensure their DMs are open.` })],
+              embeds: [buildEmbed('error', { description: `Failed to send the approval request to the Mod Log channel.` })],
               ephemeral: true
             });
           }
