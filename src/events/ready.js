@@ -7,6 +7,9 @@ module.exports = {
   once: true,
   execute(client) {
     logger.info(`Ready! Logged in as ${client.user.tag}`);
-    client.user.setActivity(`${BOT_NAME} | n!help`, { type: 3 }); // 3 is Watching
+    client.user.setPresence({
+      activities: [{ name: `${BOT_NAME} | n!help`, type: 3 }],
+      status: 'dnd',
+    });
   },
 };
