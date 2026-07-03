@@ -1,0 +1,21 @@
+{
+  "env": "es2021",
+  "extends": [
+    "eslint:recommended",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": "error",
+    "no-console": "off",
+    "no-unused-vars": "error",
+    "eqeqeq": "error",
+    "arrow-body-style": ["error", "as-needed"],
+    "prefer-const": "error"
+  },
+  "ignorePatterns": ["dist/"],
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module"
+  }
+}

@@ -1,0 +1,18 @@
+git init
+
+hideStatus
+
+# Config
+*.env*
+logs/
+*.log
+dist/
+node_modules/
+data/
+.DS_Store
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
