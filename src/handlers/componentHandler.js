@@ -136,6 +136,63 @@ module.exports = async (interaction, client) => {
         await interaction.update({ content: 'Rating submitted (unclaimed ticket).', components: [] });
       }
     }
+
+    if (interaction.customId.startsWith('approve_ban_') || interaction.customId.startsWith('deny_ban_')) {
+      const isApprove = interaction.customId.startsWith('approve_ban_');
+      const banId = parseInt(interaction.customId.replace(isApprove ? 'approve_ban_' : 'deny_ban_', ''));
+
+      const pendingBan = await prisma.pendingBan.findUnique({ where: { id: banId } });
+      if (!pendingBan) {
+        return interaction.update({ embeds: [buildEmbed('error', { description: 'This ban request is no longer valid or has already been processed.' })], components: [] });
+      }
+
+      const guild = client.guilds.cache.get(pendingBan.guildId);
+      if (!guild) return interaction.update({ content: 'Guild not found.', components: [] });
+
+      if (interaction.user.id !== guild.ownerId) {
+        return interaction.reply({ content: 'Only the server owner can approve this.', ephemeral: true });
+      }
+
+      await interaction.deferUpdate();
+
+      if (isApprove) {
+        try {
+          const targetUser = await client.users.fetch(pendingBan.targetId);
+          await guild.members.ban(pendingBan.targetId, {
+            reason: `[Approved by Owner] ${pendingBan.reason}`,
+            deleteMessageSeconds: pendingBan.deleteDays * 86400,
+          });
+
+          // Log the case
+          const { createCase } = require('../utils/modLog');
+          await createCase({
+            guild,
+            user: targetUser,
+            moderator: await client.users.fetch(pendingBan.moderatorId),
+            action: 'ban',
+            reason: `[Approved by Owner] ${pendingBan.reason}`,
+          });
+
+          await interaction.editReply({
+            embeds: [buildEmbed('success', { description: `✅ You approved the ban for <@${pendingBan.targetId}>.` })],
+            components: []
+          });
+        } catch (e) {
+          await interaction.editReply({
+            embeds: [buildEmbed('error', { description: `Failed to execute ban: ${e.message}` })],
+            components: []
+          });
+        }
+      } else {
+        await interaction.editReply({
+          embeds: [buildEmbed('info', { description: `❌ You denied the ban for <@${pendingBan.targetId}>.` })],
+          components: []
+        });
+      }
+
+      // Cleanup
+      await prisma.pendingBan.delete({ where: { id: pendingBan.id } });
+    }
   }
 
   if (interaction.isModalSubmit()) {

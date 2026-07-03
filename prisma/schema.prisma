@@ -24,6 +24,8 @@ model Guild {
   ticketCategories TicketCategory[]
   tickets          Ticket[]
   ticketBlacklist  TicketBlacklist[]
+  pendingBans      PendingBan[]
+  muteRoleId       String?
 }
 
 model Case {
@@ -112,4 +114,17 @@ model TicketBlacklist {
   addedAt DateTime @default(now())
 
   @@unique([guildId, userId])
+}
+
+model PendingBan {
+  id          Int      @id @default(autoincrement())
+  guildId     String
+  guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  targetId    String
+  moderatorId String
+  reason      String?
+  deleteDays  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([guildId])
 }
