@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  nightbite:
+    build: .
+    container_name: nightclip
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    # Uncomment to expose the healthcheck port if you want to monitor it externally
+    # ports:
+    #   - "3000:3000"
+
+# Optional Postgres setup for later scaling:
+#  db:
+#    image: postgres:15-alpine
+#    restart: always
+#    environment:
+#      POSTGRES_USER: nightclip
+#      POSTGRES_PASSWORD: secretpassword
+#      POSTGRES_DB: nightclip
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#
+#volumes:
+#  postgres_data:

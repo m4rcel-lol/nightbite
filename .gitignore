@@ -1,7 +1,3 @@
-git init
-
-hideStatus
-
 # Config
 *.env*
 logs/
@@ -16,3 +12,6 @@ data/
 .idea/
 *.swp
 *.swo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
