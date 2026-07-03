@@ -72,6 +72,18 @@ module.exports = {
         });
       }
 
+      if (!targetMember.bannable) {
+        return context.reply({
+          embeds: [
+            buildEmbed('error', {
+              description:
+                'I do not have permission to ban this user. Make sure my role is higher than theirs.',
+            }),
+          ],
+          ephemeral: true,
+        });
+      }
+
       const targetLevel = await getPermissionLevel(targetMember, 'all');
       const isStaff = targetLevel >= PERMISSION_LEVELS.STAFF_MODERATION;
 
@@ -145,18 +157,6 @@ module.exports = {
             });
           }
         }
-      }
-
-      if (!targetMember.bannable) {
-        return context.reply({
-          embeds: [
-            buildEmbed('error', {
-              description:
-                'I do not have permission to ban this user. Make sure my role is higher than theirs.',
-            }),
-          ],
-          ephemeral: true,
-        });
       }
 
       // Try DMing before ban
