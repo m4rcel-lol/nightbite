@@ -2,7 +2,7 @@ const { EmbedBuilder } = require('discord.js');
 
 const { colors } = require('./constants');
 
-function buildEmbed(type = 'default', options = {}) {
+function buildEmbed(type = 'default', options = {}, client = null) {
   const {
     title = '',
     description = '',
@@ -20,10 +20,16 @@ function buildEmbed(type = 'default', options = {}) {
     .setDescription(description);
 
   if (timestamp) embed.setTimestamp();
-  if (footer) embed.setFooter({ text: footer });
   if (thumbnail) embed.setThumbnail(thumbnail);
   if (image) embed.setImage(image);
   if (author) embed.setAuthor(author);
+
+  const footerText = footer || 'Nightbite';
+  if (client && client.user && client.user.avatarURL()) {
+    embed.setFooter({ text: footerText, iconURL: client.user.avatarURL() });
+  } else {
+    embed.setFooter({ text: footerText });
+  }
 
   switch (type) {
     case 'success':
